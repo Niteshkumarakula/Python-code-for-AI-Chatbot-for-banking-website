@@ -1,0 +1,71 @@
+import time
+
+class PerformanceTester:
+    def __init__(self, chatbot):
+        self.chatbot = chatbot
+        self.metrics = {
+            'response_time': [],
+            'escalation_rate': 0,
+            'error_rate': 0,
+            'conversation_length': 0
+        }
+
+    def test_performance(self, input_set):
+        for user_input in input_set:
+            start_time = time.time()
+            self.chatbot.user_input = user_input
+            response = self.chatbot.check_loan_eligibility()
+            end_time = time.time()
+
+            # Record response time
+            response_time = end_time - start_time
+            self.metrics['response_time'].append(response_time)
+
+            # Record escalation rate
+            if "Sorry" in response:
+                self.metrics['escalation_rate'] += 1
+
+            # Record error rate
+            if "error" in response.lower():
+                self.metrics['error_rate'] += 1
+
+            # Record conversation length
+            self.metrics['conversation_length'] += 1
+
+        # Calculate average response time
+        avg_response_time = sum(self.metrics['response_time']) / len(self.metrics['response_time'])
+        self.metrics['avg_response_time'] = avg_response_time
+
+        # Calculate escalation rate and error rate
+        total_inputs = len(input_set)
+        self.metrics['escalation_rate'] = self.metrics['escalation_rate'] / total_inputs
+        self.metrics['error_rate'] = self.metrics['error_rate'] / total_inputs
+
+    def print_metrics(self):
+        print("Metrics:")
+        print(f"Average Response Time: {self.metrics['avg_response_time']:.4f} seconds")
+        print(f"Escalation Rate: {self.metrics['escalation_rate']:.2%}")
+        print(f"Error Rate: {self.metrics['error_rate']:.2%}")
+        print(f"Conversation Length: {self.metrics['conversation_length']} turns")
+
+if __name__ == "__main__":
+    # Initialize the LoanChatbot
+    chatbot = LoanChatbot()
+
+    # Input set for testing
+    test_inputs = [
+        "No, I don't have a credit history.",
+        "200000",  # Property value
+        "120000",  # Annual income
+        "Yes, I have a credit history.",
+        "0",  # Property value
+        "80000"  # Annual income
+        # Add more test cases as needed
+    ]
+
+    # Run the performance test
+    tester = PerformanceTester(chatbot)
+    tester.test_performance(test_inputs)
+
+    # Print the results
+    tester.print_metrics()
